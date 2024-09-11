@@ -97,12 +97,30 @@ vim.g.have_nerd_font = false
 -- See `:help vim.opt`
 -- NOTE: You can change these options as you wish!
 --  For more options, you can see `:help option-list`
+--
+-- Set highlight on search
+vim.o.hlsearch = false
+
+-- Set tab width to 2 spaces
+vim.opt.tabstop = 2 -- Width of tab character
+vim.opt.softtabstop = 2 -- Fine-tunes the amount of whitespace to be inserted
+vim.opt.shiftwidth = 2 -- Number of spaces to use for auto-indenting
+vim.opt.expandtab = true -- Use spaces instead of tabs
+
+-- Enable line wrapping
+vim.opt.wrap = true
+
+-- Wrap long lines at a character in 'breakat' rather than at the last character that fits on the screen
+vim.opt.linebreak = true
+
+-- Prevent Vim from automatically inserting line breaks in newly entered text
+vim.opt.textwidth = 0
 
 -- Make line numbers default
 vim.opt.number = true
 -- You can also add relative line numbers, to help with jumping.
 --  Experiment for yourself to see if you like it!
--- vim.opt.relativenumber = true
+vim.opt.relativenumber = true
 
 -- Enable mouse mode, can be useful for resizing splits for example!
 vim.opt.mouse = 'a'
@@ -155,7 +173,13 @@ vim.opt.inccommand = 'split'
 vim.opt.cursorline = true
 
 -- Minimal number of screen lines to keep above and below the cursor.
-vim.opt.scrolloff = 10
+vim.opt.scrolloff = 5
+
+vim.filetype.add {
+  extension = {
+    templ = 'templ',
+  },
+}
 
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
@@ -227,10 +251,12 @@ vim.opt.rtp:prepend(lazypath)
 --    :Lazy update
 --
 -- NOTE: Here is where you install your plugins.
-require('lazy').setup({
-  -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
-  'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
+--
 
+require('lazy').setup({
+  --
+  -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
+  --
   -- NOTE: Plugins can also be added by using a table,
   -- with the first argument being the link and the following
   -- keys can be used to configure plugin behavior/loading/etc.
@@ -355,6 +381,9 @@ require('lazy').setup({
         -- pickers = {}
         extensions = {
           ['ui-select'] = {
+            require('telescope.themes').get_dropdown(),
+          },
+          ['fzf'] = {
             require('telescope.themes').get_dropdown(),
           },
         },
@@ -569,19 +598,45 @@ require('lazy').setup({
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
-        -- clangd = {},
-        -- gopls = {},
-        -- pyright = {},
-        -- rust_analyzer = {},
-        -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
-        --
-        -- Some languages (like typescript) have entire language plugins that can be useful:
-        --    https://github.com/pmizio/typescript-tools.nvim
-        --
-        -- But for many setups, the LSP (`tsserver`) will work just fine
-        -- tsserver = {},
-        --
+        -- See `:help lspconfig-all` for a list of all the pre-configured LSPs
 
+        -- Web development
+        tsserver = {},
+        html = {
+          filetypes = { 'html', 'templ', 'tmpl', 'template' },
+        },
+        cssls = {},
+        jsonls = {},
+        tailwindcss = {
+          filetypes = { 'html', 'templ', 'tmpl', 'template' },
+        },
+        htmx = {
+          filetypes = { 'html', 'templ', 'tmpl', 'template' },
+        },
+
+        -- Go
+        gopls = {
+          settings = {
+            gopls = {
+              analyses = {
+                unusedparams = true,
+              },
+              staticcheck = true,
+              gofumpt = true,
+            },
+          },
+          filetypes = { 'go', 'templ', 'tmpl', 'template' },
+        },
+
+        -- Other servers
+        pyright = {},
+        rust_analyzer = {},
+        clangd = {},
+        marksman = {
+          filetypes = { 'markdown' },
+        },
+
+        -- Lua
         lua_ls = {
           -- cmd = {...},
           -- filetypes = { ...},
@@ -610,13 +665,29 @@ require('lazy').setup({
       -- for you, so that they are available from within Neovim.
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
-        'stylua', -- Used to format Lua code
+        -- -- LSPs
+        -- 'gopls',
+        -- 'tsserver',
+        -- 'html',
+        -- 'cssls',
+        -- 'jsonls',
+        'marksman',
+        -- -- Formatters
+        -- 'gofumpt',
+        -- 'prettier',
+        -- 'stylua',
+        -- -- Others
+        -- 'templ',
+        -- 'htmx',
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
-
       require('mason-lspconfig').setup {
         handlers = {
-          function(server_name)
+          function(server_name) -- default handler (optional)
+            -- https://github.com/neovim/nvim-lspconfig/pull/3232
+            if server_name == 'tsserver' then
+              server_name = 'ts_ls'
+            end
             local server = servers[server_name] or {}
             -- This handles overriding only values explicitly passed
             -- by the server configuration above. Useful when disabling
@@ -656,7 +727,18 @@ require('lazy').setup({
         }
       end,
       formatters_by_ft = {
+        go = { 'gofumpt' },
+        templ = { 'gofumpt' },
         lua = { 'stylua' },
+        javascript = { 'prettier' },
+        typescript = { 'prettier' },
+        javascriptreact = { 'prettier' },
+        typescriptreact = { 'prettier' },
+        html = { 'prettier' },
+        css = { 'prettier' },
+        json = { 'prettier' },
+        yaml = { 'prettier' },
+        markdown = { 'prettier' },
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
         --
@@ -788,12 +870,13 @@ require('lazy').setup({
     --
     -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
     'folke/tokyonight.nvim',
+    -- 'neanias/everforest-nvim',
     priority = 1000, -- Make sure to load this before all the other start plugins.
     init = function()
       -- Load the colorscheme here.
       -- Like many other themes, this one has different styles, and you could load
       -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme 'tokyonight-night'
+      vim.cmd.colorscheme 'retrobox'
 
       -- You can configure highlights by doing something like:
       vim.cmd.hi 'Comment gui=none'
@@ -844,7 +927,24 @@ require('lazy').setup({
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
+      ensure_installed = {
+        'bash',
+        'c',
+        'css',
+        'diff',
+        'go',
+        'html',
+        'javascript',
+        'json',
+        'lua',
+        'luadoc',
+        'markdown',
+        'markdown_inline',
+        'query',
+        'vim',
+        'vimdoc',
+        'yaml',
+      },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
@@ -884,15 +984,15 @@ require('lazy').setup({
   -- require 'kickstart.plugins.indent_line',
   -- require 'kickstart.plugins.lint',
   -- require 'kickstart.plugins.autopairs',
-  -- require 'kickstart.plugins.neo-tree',
-  -- require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
+  require 'kickstart.plugins.neo-tree',
+  require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
   --
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
   --    For additional information, see `:help lazy.nvim-lazy.nvim-structuring-your-plugins`
-  -- { import = 'custom.plugins' },
+  { import = 'custom.plugins' },
 }, {
   ui = {
     -- If you are using a Nerd Font: set icons to an empty table which will use the
