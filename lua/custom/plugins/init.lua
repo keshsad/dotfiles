@@ -9,4 +9,13 @@ return {
   -- Git related plugins
   'tpope/vim-fugitive',
   'tpope/vim-rhubarb',
+
+  -- Nerd Font Icons
+  {
+    '2kabhishek/nerdy.nvim',
+    dependencies = {
+      'nvim-telescope/telescope.nvim',
+    },
+    cmd = 'Nerdy',
+  },
 }

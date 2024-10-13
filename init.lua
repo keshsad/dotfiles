@@ -91,7 +91,7 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
 -- Set to true if you have a Nerd Font installed and selected in the terminal
-vim.g.have_nerd_font = false
+vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
 -- See `:help vim.opt`
@@ -396,6 +396,7 @@ require('lazy').setup({
       -- Enable Telescope extensions if they are installed
       pcall(require('telescope').load_extension, 'fzf')
       pcall(require('telescope').load_extension, 'ui-select')
+      pcall(require('telescope').load_extension, 'nerdy')
 
       -- See `:help telescope.builtin`
       local builtin = require 'telescope.builtin'
@@ -605,7 +606,7 @@ require('lazy').setup({
         -- See `:help lspconfig-all` for a list of all the pre-configured LSPs
 
         -- Web development
-        tsserver = {},
+        -- tsserver = {},
         html = {
           filetypes = { 'html', 'templ', 'tmpl', 'template' },
         },
@@ -875,15 +876,30 @@ require('lazy').setup({
     -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
     'folke/tokyonight.nvim',
     -- 'neanias/everforest-nvim',
+    -- 'ellisonleao/gruvbox.nvim',
     priority = 1000, -- Make sure to load this before all the other start plugins.
     init = function()
       -- Load the colorscheme here.
       -- Like many other themes, this one has different styles, and you could load
       -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
+      vim.o.background = 'dark'
       vim.cmd.colorscheme 'retrobox'
 
       -- You can configure highlights by doing something like:
       vim.cmd.hi 'Comment gui=none'
+
+      -- Function to toggle between light/dark mode
+      local function toggle_theme()
+        if vim.o.background == 'dark' then
+          vim.o.background = 'light'
+        else
+          vim.o.background = 'dark'
+        end
+        vim.cmd.colorscheme 'retrobox' -- Reapply colorscheme
+      end
+
+      -- Keymap to toggle light/dark mode
+      vim.keymap.set('n', '<leader>tt', toggle_theme, { desc = '[T]oggle [T]heme' })
     end,
   },
 
