@@ -391,6 +391,9 @@ require('lazy').setup({
           ['fzf'] = {
             require('telescope.themes').get_dropdown(),
           },
+          ['nerdy'] = {
+            require('telescope.themes').get_dropdown(),
+          },
         },
       }
 
