@@ -868,7 +868,7 @@ require('lazy').setup({
       -- Like many other themes, this one has different styles, and you could load
       -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
       vim.o.background = 'dark'
-      vim.cmd.colorscheme 'tokyonight'
+      vim.cmd.colorscheme 'tokyonight-storm'
 
       -- You can configure highlights by doing something like:
       vim.cmd.hi 'Comment gui=none'
@@ -880,7 +880,7 @@ require('lazy').setup({
         else
           vim.o.background = 'dark'
         end
-        vim.cmd.colorscheme 'retrobox' -- Reapply colorscheme
+        vim.cmd.colorscheme 'tokyonight-storm' -- Reapply colorscheme
       end
 
       -- Keymap to toggle light/dark mode
